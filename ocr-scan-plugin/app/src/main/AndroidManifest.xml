@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Permiso requerido para que el plugin sea detectado y reciba escaneos -->
+    <uses-permission android:name="dev.fabik.bluetoothhid.permission.RECEIVE_SCANS" />
+
+    <!-- Necesario en Android 11+ para poder enviar broadcasts de vuelta a la app -->
+    <queries>
+        <package android:name="dev.fabik.bluetoothhid" />
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.DayNight">
+
+        <!-- Pantalla de ajustes, opcional. Se abre al mantener pulsado
+             el plugin en el selector de la app principal. -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="@string/settings_title">
+            <intent-filter>
+                <action android:name="dev.fabik.bluetoothhid.plugin.action.SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Receiver principal: recibe cada código escaneado -->
+        <receiver
+            android:name=".ScanReceiver"
+            android:exported="true"
+            android:permission="dev.fabik.bluetoothhid.permission.RECEIVE_SCANS">
+            <intent-filter>
+                <action android:name="dev.fabik.bluetoothhid.action.BARCODE_SCANNED" />
+            </intent-filter>
+
+            <!-- Metadatos que se muestran en el selector de plugins de la app -->
+            <meta-data
+                android:name="dev.fabik.bluetoothhid.plugin.label"
+                android:value="@string/plugin_label" />
+            <meta-data
+                android:name="dev.fabik.bluetoothhid.plugin.shortLabel"
+                android:value="@string/plugin_short_label" />
+            <meta-data
+                android:name="dev.fabik.bluetoothhid.plugin.author"
+                android:value="@string/plugin_author" />
+        </receiver>
+
+        <!-- Canal de control: ping de salud + habilitar/deshabilitar -->
+        <receiver
+            android:name=".PluginControlReceiver"
+            android:exported="true"
+            android:permission="dev.fabik.bluetoothhid.permission.RECEIVE_SCANS">
+            <intent-filter>
+                <action android:name="dev.fabik.bluetoothhid.plugin.action.SET_ENABLED" />
+                <action android:name="dev.fabik.bluetoothhid.plugin.action.PING" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>

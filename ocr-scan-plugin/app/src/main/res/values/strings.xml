@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">OCR Scan Plugin</string>
+    <string name="plugin_label">OCR Scan Plugin</string>
+    <string name="plugin_short_label">OCR</string>
+    <string name="plugin_author">Tu nombre</string>
+    <string name="settings_title">Ajustes del plugin OCR</string>
+</resources>
