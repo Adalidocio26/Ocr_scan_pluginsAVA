@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
@@ -34,25 +35,47 @@ class ScanReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Escaneo recibido: raw=$rawValue processed=$processedValue format=$format image=$scanImageName")
 
-        // Si la app adjunta el nombre/ruta de una imagen del escaneo,
-        // le corremos OCR encima. Si no hay imagen, no hay nada que
-        // reconocer y solo procesamos el valor ya decodificado.
+        // Toast inmediato para confirmar a simple vista que el broadcast llegó,
+        // sin necesidad de Logcat/Android Studio.
+        Toast.makeText(
+            context,
+            "Plugin OCR recibió: ${processedValue ?: rawValue ?: "(sin valor)"}",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        // goAsync() le pide al sistema que mantenga este receiver vivo un poco
+        // más (hasta ~10s) mientras el OCR corre en segundo plano de forma
+        // asíncrona. Sin esto, el proceso podría morir antes de que ML Kit
+        // termine y el resultado del OCR se perdería silenciosamente.
+        val pendingResult = goAsync()
+
         if (!scanImageName.isNullOrBlank()) {
             runOcrOnScanImage(context, scanImageName) { recognizedText ->
-                handleResult(processedValue ?: rawValue, format, recognizedText)
+                handleResult(context, processedValue ?: rawValue, format, recognizedText)
+                pendingResult.finish()
             }
         } else {
-            handleResult(processedValue ?: rawValue, format, null)
+            handleResult(context, processedValue ?: rawValue, format, null)
+            pendingResult.finish()
         }
     }
 
     /**
      * Punto único donde decides qué hacer con el resultado final:
      * guardarlo, mandarlo por HTTP/TCP a un servidor, escribirlo a un
-     * archivo, mostrarlo en una notificación, etc.
+     * archivo, etc. Por ahora, además del log, muestra un Toast visible
+     * para poder verificar el resultado completo sin herramientas extra.
      */
-    private fun handleResult(barcodeValue: String?, format: String?, ocrText: String?) {
+    private fun handleResult(context: Context, barcodeValue: String?, format: String?, ocrText: String?) {
         Log.i(TAG, "Resultado final -> barcode: $barcodeValue ($format) | OCR: $ocrText")
+
+        val message = if (ocrText != null) {
+            "Código: $barcodeValue\nTexto OCR: $ocrText"
+        } else {
+            "Código: $barcodeValue ($format)\n(sin imagen para OCR o no se encontró texto)"
+        }
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+
         // TODO: aquí conectas tu lógica real (HTTP, guardar en BD local, etc.)
     }
 
