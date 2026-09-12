@@ -16,12 +16,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight">
 
-        <!-- Pantalla de ajustes, opcional. Se abre al mantener pulsado
-             el plugin en el selector de la app principal. -->
+        <!-- Pantalla de ajustes. Actúa TAMBIÉN como punto de entrada normal
+             (ícono en el launcher) porque una app recién instalada queda en
+             estado "stopped" en Android hasta que el usuario la abre al
+             menos una vez manualmente. Mientras está en ese estado, el
+             sistema NO entrega ningún broadcast a sus receivers, ni
+             siquiera los explícitos. Sin este intent-filter, el plugin
+             nunca podría recibir BARCODE_SCANNED. -->
         <activity
             android:name=".SettingsActivity"
             android:exported="true"
             android:label="@string/settings_title">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="dev.fabik.bluetoothhid.plugin.action.SETTINGS" />
                 <category android:name="android.intent.category.DEFAULT" />
